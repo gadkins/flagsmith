@@ -153,6 +153,7 @@ INSTALLED_APPS = [
     "django_filters",
     "import_export",
     "task_processor",
+    "metadata",
 ]
 
 if GOOGLE_ANALYTICS_KEY or INFLUXDB_TOKEN:

@@ -10,6 +10,7 @@ from audit.models import (
     RelatedObjectType,
 )
 from environments.identities.models import Identity
+from metadata.serializers import MetadataSerializer
 from users.serializers import UserIdsSerializer, UserListSerializer
 from util.drf_writable_nested.serializers import WritableNestedModelSerializer
 
@@ -72,6 +73,7 @@ class ListCreateFeatureSerializer(WritableNestedModelSerializer):
         many=True, required=False
     )
     owners = UserListSerializer(many=True, read_only=True)
+    metadata = MetadataSerializer(many=True, required=False)
 
     class Meta:
         model = Feature
@@ -89,6 +91,7 @@ class ListCreateFeatureSerializer(WritableNestedModelSerializer):
             "owners",
             "uuid",
             "project",
+            "metadata",
         )
         read_only_fields = ("feature_segments", "created_date", "uuid", "project")
 
