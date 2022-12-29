@@ -10,6 +10,7 @@ from audit.models import (
 )
 from environments.models import Environment, EnvironmentAPIKey, Webhook
 from features.serializers import FeatureStateSerializerFull
+from metadata.serializers import MetadataSerializer, MetadataSerializerMixin
 from organisations.models import Subscription
 from organisations.subscriptions.serializers.mixins import (
     ReadOnlyIfNotValidPlanMixin,
@@ -35,7 +36,9 @@ class EnvironmentSerializerFull(serializers.ModelSerializer):
         )
 
 
-class EnvironmentSerializerLight(serializers.ModelSerializer):
+class EnvironmentSerializerLight(serializers.ModelSerializer, MetadataSerializerMixin):
+    metadata = MetadataSerializer(required=False, many=True)
+
     class Meta:
         model = Environment
         fields = (
@@ -48,7 +51,23 @@ class EnvironmentSerializerLight(serializers.ModelSerializer):
             "allow_client_traits",
             "banner_text",
             "banner_colour",
+            "metadata",
         )
+
+    def save(self, **kwargs):
+        # maybe move this to a mixin
+        self.check_required_metadata(self.validated_data.pop("metadata", []))
+
+        metadata = self.initial_data.pop("metadata", None)
+        metadata_serializer = MetadataSerializer(
+            data=metadata, many=True, context=self.context
+        )
+        metadata_serializer.is_valid(raise_exception=True)
+
+        instance = super().save(**kwargs)
+
+        metadata_serializer.save(content_object=instance)
+        return instance
 
     def create(self, validated_data):
         instance = super(EnvironmentSerializerLight, self).create(validated_data)
