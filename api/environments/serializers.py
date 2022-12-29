@@ -36,7 +36,7 @@ class EnvironmentSerializerFull(serializers.ModelSerializer):
         )
 
 
-class EnvironmentSerializerLight(serializers.ModelSerializer, MetadataSerializerMixin):
+class EnvironmentSerializerLight(MetadataSerializerMixin, serializers.ModelSerializer):
     metadata = MetadataSerializer(required=False, many=True)
 
     class Meta:
@@ -53,21 +53,6 @@ class EnvironmentSerializerLight(serializers.ModelSerializer, MetadataSerializer
             "banner_colour",
             "metadata",
         )
-
-    def save(self, **kwargs):
-        # maybe move this to a mixin
-        self.check_required_metadata(self.validated_data.pop("metadata", []))
-
-        metadata = self.initial_data.pop("metadata", None)
-        metadata_serializer = MetadataSerializer(
-            data=metadata, many=True, context=self.context
-        )
-        metadata_serializer.is_valid(raise_exception=True)
-
-        instance = super().save(**kwargs)
-
-        metadata_serializer.save(content_object=instance)
-        return instance
 
     def create(self, validated_data):
         instance = super(EnvironmentSerializerLight, self).create(validated_data)
