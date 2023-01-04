@@ -10,7 +10,6 @@ from audit.models import (
     RelatedObjectType,
 )
 from environments.identities.models import Identity
-from metadata.serializers import MetadataSerializer, MetadataSerializerMixin
 from users.serializers import UserIdsSerializer, UserListSerializer
 from util.drf_writable_nested.serializers import WritableNestedModelSerializer
 
@@ -68,14 +67,11 @@ class FeatureQuerySerializer(serializers.Serializer):
             raise serializers.ValidationError("Tag IDs must be integers.")
 
 
-class ListCreateFeatureSerializer(
-    MetadataSerializerMixin, WritableNestedModelSerializer
-):
+class ListCreateFeatureSerializer(WritableNestedModelSerializer):
     multivariate_options = NestedMultivariateFeatureOptionSerializer(
         many=True, required=False
     )
     owners = UserListSerializer(many=True, read_only=True)
-    metadata = MetadataSerializer(many=True, required=False)
 
     class Meta:
         model = Feature
@@ -93,7 +89,6 @@ class ListCreateFeatureSerializer(
             "owners",
             "uuid",
             "project",
-            "metadata",
         )
         read_only_fields = ("feature_segments", "created_date", "uuid", "project")
 
