@@ -26,6 +26,7 @@ from permissions.models import PermissionModel
 from projects.models import Project, UserProjectPermission
 from projects.tags.models import Tag
 from segments.models import EQUAL, Condition, Segment, SegmentRule
+from task_processor.task_run_method import TaskRunMethod
 from users.models import FFAdminUser, UserPermissionGroup
 
 trait_key = "key1"
@@ -343,3 +344,9 @@ def environment_metadata_b(environment, optional_b_environment_metadata_field):
         model_field=optional_b_environment_metadata_field,
         field_value="10",
     )
+
+
+@pytest.fixture(autouse=True)
+def task_processor_synchronously(settings):
+    settings.TASK_RUN_METHOD = TaskRunMethod.SYNCHRONOUSLY
+

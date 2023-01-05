@@ -154,6 +154,7 @@ INSTALLED_APPS = [
     "import_export",
     "task_processor",
     "metadata",
+    "softdelete",
 ]
 
 if GOOGLE_ANALYTICS_KEY or INFLUXDB_TOKEN:
@@ -698,6 +699,7 @@ FLAGSMITH_ANALYTICS = env.bool("FLAGSMITH_ANALYTICS", default=False)
 FLAGSMITH_ON_FLAGSMITH_API_URL = env("FLAGSMITH_ON_FLAGSMITH_API_URL", default=None)
 FLAGSMITH_ON_FLAGSMITH_API_KEY = env("FLAGSMITH_ON_FLAGSMITH_API_KEY", default=None)
 GOOGLE_ANALYTICS_API_KEY = env("GOOGLE_ANALYTICS_API_KEY", default=None)
+HEADWAY_API_KEY = env("HEADWAY_API_KEY", default=None)
 LINKEDIN_API_KEY = env("LINKEDIN_API_KEY", default=None)
 CRISP_CHAT_API_KEY = env("CRISP_CHAT_API_KEY", default=None)
 MIXPANEL_API_KEY = env("MIXPANEL_API_KEY", default=None)
@@ -818,3 +820,6 @@ PIPEDRIVE_IGNORE_DOMAINS = env.list(
 
 # List of plan ids that support seat upgrades
 AUTO_SEAT_UPGRADE_PLANS = env.list("AUTO_SEAT_UPGRADE_PLANS", default=[])
+
+
+SKIP_MIGRATION_TESTS = env.bool("SKIP_MIGRATION_TESTS", False)
