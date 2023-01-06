@@ -11,6 +11,7 @@ from organisations.subscriptions.serializers.mixins import (
 )
 from projects.models import Project
 from projects.serializers import ProjectSerializer
+from util.drf_writable_nested.serializers import WritableNestedModelSerializer
 
 
 class EnvironmentSerializerFull(serializers.ModelSerializer):
@@ -30,7 +31,9 @@ class EnvironmentSerializerFull(serializers.ModelSerializer):
         )
 
 
-class EnvironmentSerializerLight(MetadataSerializerMixin, serializers.ModelSerializer):
+class EnvironmentSerializerLight(
+    MetadataSerializerMixin, WritableNestedModelSerializer
+):
     metadata = MetadataSerializer(required=False, many=True)
 
     class Meta:

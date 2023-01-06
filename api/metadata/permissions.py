@@ -8,7 +8,7 @@ class MetadataFieldPermissions(IsAuthenticated):
 
         organisation = request.data.get("organisation")
         if view.action == "create" and request.user.belongs_to(organisation):
-            return request.user.is_organisation_admin(request.data.get("organisation"))
+            return request.user.is_organisation_admin(organisation)
 
         # list is handled by the view
         if view.action == "list":
