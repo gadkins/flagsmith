@@ -45,7 +45,6 @@ class MetadataSerializer(serializers.ModelSerializer):
                 "bool": str_to_bool,
             }[expected_type]
             casting_function(data["field_value"])
-
         except ValueError:
             raise serializers.ValidationError(
                 f"Invalid data type. Must be the string representation of {expected_type}"

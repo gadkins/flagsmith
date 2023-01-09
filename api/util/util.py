@@ -11,7 +11,7 @@ def postpone(function):
 
 
 def str_to_bool(value) -> bool:
-    if value not in ["True", "true", "false", "false"]:
+    if value not in ["True", "true", "False", "false"]:
         raise ValueError(f"Invalid Value {value}")
 
     return value not in ["False", "false"]
