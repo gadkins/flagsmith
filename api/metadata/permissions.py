@@ -36,7 +36,7 @@ class MetadataModelFieldPermissions(IsAuthenticated):
         organisation_pk = int(view.kwargs.get("organisation_pk"))
 
         if request.user.belongs_to(organisation_pk):
-            if view.action == "list" or view.detail:
+            if view.action in ["list", "get_supported_content_types"] or view.detail:
                 return True
 
             if view.action == "create":

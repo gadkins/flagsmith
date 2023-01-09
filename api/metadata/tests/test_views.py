@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from metadata.models import MetadataModelField
+from metadata.views import METADATA_SUPPORTED_MODELS
 
 
 def test_can_create_metadata_field(admin_client, organisation):
@@ -275,3 +276,22 @@ def test_can_not_create_model_metadata_field_using_field_from_other_organisation
 
     # Then
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_get_supported_content_type(admin_client, organisation):
+
+    # Given
+    url = reverse(
+        "api-v1:organisations:metadata-model-fields-get-supported-content-types",
+        args=[organisation.id],
+    )
+    # When
+    response = admin_client.get(url)
+
+    # Then
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == len(METADATA_SUPPORTED_MODELS)
+
+    assert set([content_type["model"] for content_type in response.json()]) == set(
+        METADATA_SUPPORTED_MODELS
+    )

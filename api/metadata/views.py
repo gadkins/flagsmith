@@ -78,13 +78,15 @@ class MetaDataModelFieldViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    @swagger_auto_schema(method="GET", responses={200: MetaDataModelFieldSerializer()})
+    @swagger_auto_schema(
+        method="GET", responses={200: ContentTypeSerializer(many=True)}
+    )
     @action(
         detail=False,
         methods=["GET"],
-        serializer_class=MetaDataModelFieldSerializer,
+        url_path="get-supported-content_types",
     )
-    def get_supported_content_types(self, request):
+    def get_supported_content_types(self, request, organisation_pk=None):
         qs = ContentType.objects.filter(model__in=METADATA_SUPPORTED_MODELS)
         serializer = ContentTypeSerializer(qs, many=True)
 

@@ -31,11 +31,7 @@ class EnvironmentSerializerFull(serializers.ModelSerializer):
         )
 
 
-class EnvironmentSerializerLight(
-    MetadataSerializerMixin, WritableNestedModelSerializer
-):
-    metadata = MetadataSerializer(required=False, many=True)
-
+class EnvironmentSerializerLight(serializers.ModelSerializer):
     class Meta:
         model = Environment
         fields = (
@@ -48,12 +44,21 @@ class EnvironmentSerializerLight(
             "allow_client_traits",
             "banner_text",
             "banner_colour",
-            "metadata",
         )
 
 
+class EnvironmentSerializerWithMetadata(
+    MetadataSerializerMixin, WritableNestedModelSerializer, EnvironmentSerializerLight
+):
+
+    metadata = MetadataSerializer(required=False, many=True)
+
+    class Meta(EnvironmentSerializerLight.Meta):
+        fields = EnvironmentSerializerLight.Meta.fields + ("metadata",)
+
+
 class CreateUpdateEnvironmentSerializer(
-    ReadOnlyIfNotValidPlanMixin, EnvironmentSerializerLight
+    ReadOnlyIfNotValidPlanMixin, EnvironmentSerializerWithMetadata
 ):
     invalid_plans = ("free",)
     field_names = ("minimum_change_request_approvals",)
