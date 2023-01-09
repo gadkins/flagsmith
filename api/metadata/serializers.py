@@ -1,6 +1,8 @@
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
+from util.util import str_to_bool
+
 from .models import (
     FIELD_VALUE_MAX_LENGTH,
     FieldType,
@@ -19,7 +21,7 @@ class MetadataFieldSerializer(serializers.ModelSerializer):
 class MetaDataModelFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetadataModelField
-        fields = ("id", "field", "is_required")
+        fields = ("id", "field", "is_required", "content_type")
 
 
 class FieldDataField(serializers.Field):
@@ -43,31 +45,39 @@ class FieldDataField(serializers.Field):
         return value
 
 
-class MetadataSerializer(serializers.ModelSerializer):
-    field_value = FieldDataField()
+class ContentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContentType
+        fields = ("id", "app_label", "model")
 
+
+class MetadataSerializer(serializers.ModelSerializer):
     class Meta:
         model = Metadata
         fields = ("id", "model_field", "field_value")
 
     def validate(self, data):
-        if type(data["field_value"]).__name__ != data["model_field"].field.type:
-            raise serializers.ValidationError("Invalid type")
+        data = super().validate(data)
+        expected_type = data["model_field"].field.type
+        try:
+            casting_function = {
+                "int": int,
+                "float": float,
+                "str": str,
+                "bool": str_to_bool,
+            }[expected_type]
+            casting_function(data["field_value"])
+
+        except ValueError:
+            raise serializers.ValidationError(
+                f"Invalid data type. Must be the string representation of {expected_type}"
+            )
+
+        if expected_type == str and len(data["field_value"]) > FIELD_VALUE_MAX_LENGTH:
+            raise serializers.ValidationError(
+                f"Value string is too long. Must be less than {FIELD_VALUE_MAX_LENGTH} character"
+            )
         return data
-
-    def to_representation(self, value):
-        # Convert field_value to its appropriate type(from string)
-        field_type = value.model_field.field.type
-        value = super().to_representation(value)
-
-        value["field_value"] = {
-            "str": str,
-            "int": int,
-            "float": float,
-            "bool": lambda v: v not in ("False", "false"),
-        }.get(field_type)(value["field_value"])
-
-        return value
 
 
 class MetadataSerializerMixin:

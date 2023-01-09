@@ -1,38 +1,39 @@
 import pytest
-from rest_framework import serializers
 
+from metadata.models import MetadataField, MetadataModelField
 from metadata.serializers import MetadataSerializer
 
 
-def test_metadata_serializer_is_valid_raises_error_for_invalid_type(
-    a_metadata_field, required_a_environment_metadata_field
+@pytest.mark.parametrize(
+    "field_type, field_value, expected_is_valid",
+    [
+        ("int", "1", True),
+        ("int", "string", False),
+        ("float", "1.0", True),
+        ("float", "string", False),
+        ("bool", "True", True),
+        ("bool", "true", True),
+        ("bool", "False", True),
+        ("bool", "false", True),
+        ("bool", "10", False),
+        ("bool", "string", False),
+    ],
+)
+def test_metadata_serializer_validate_validates_field_value_type_correctly(
+    organisation, environment_content_type, field_type, field_value, expected_is_valid
 ):
-    # Given - `a_metadata_field` of type integer
-    # and
-    data = {
-        "model_field": required_a_environment_metadata_field.id,
-        "field_value": "string",
-    }
+    # Given
+    field = MetadataField.objects.create(
+        name="b", type=field_type, organisation=organisation
+    )
+
+    model_field = MetadataModelField.objects.create(
+        field=field, content_type=environment_content_type
+    )
+
+    data = {"model_field": model_field.id, "field_value": field_value}
 
     serializer = MetadataSerializer(data=data)
 
-    # When
-    with pytest.raises(serializers.ValidationError) as e:
-        serializer.is_valid(raise_exception=True)
-
-    # Then - correct execption was raised
-    "Invalid Type" in str(e.value)
-
-
-def test_metadata_serializer_converts_field_value_type_correctly(
-    a_metadata_field, environment_metadata_a
-):
-    # Given - `a_metadata_field` of type integer
-    # and
-    serializer = MetadataSerializer(instance=environment_metadata_a)
-
-    # When
-    data = serializer.data
-
-    # Then
-    assert isinstance(data["field_value"], int) is True
+    # When/ Then
+    assert serializer.is_valid() is expected_is_valid

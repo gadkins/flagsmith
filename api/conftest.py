@@ -346,6 +346,11 @@ def environment_metadata_b(environment, optional_b_environment_metadata_field):
     )
 
 
+@pytest.fixture()
+def environment_content_type():
+    return ContentType.objects.get_for_model(Environment)
+
+
 @pytest.fixture(autouse=True)
 def task_processor_synchronously(settings):
     settings.TASK_RUN_METHOD = TaskRunMethod.SYNCHRONOUSLY
