@@ -1,9 +1,11 @@
 import json
 import re
+import uuid
 
 import boto3
 from core.constants import STRING
 from django.contrib.contenttypes.models import ContentType
+from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from flag_engine.segments.constants import ALL_RULE
 from moto import mock_s3
@@ -140,19 +142,36 @@ def test_export_metadata(environment, organisation):
         field=metadata_field, content_type=environment_type
     )
 
-    Metadata.objects.create(
+    metadata = Metadata.objects.create(
         object_id=environment.id,
         content_type=environment_type,
         model_field=environment_metadata_field,
         field_value="some_data",
     )
     # When
-    export = export_metadata(organisation.id)
+    data = export_metadata(organisation.id)
 
-    # Then
-    assert export
+    # Then - we should be able to load the data
+    file_path = f"/tmp/{uuid.uuid4()}.json"
+    with open(file_path, "a+") as f:
+        f.write(json.dumps(data, cls=DjangoJSONEncoder))
+        f.seek(0)
 
-    # TODO: test whether the export is importable
+        # Let's delete metadata field(which in turn will delete metadata model field and metadata field)
+        metadata_field.delete()
+
+        # Next, let's load the data
+        call_command("loaddata", f.name, format="json")
+
+        # All the fields should now exists
+        assert Metadata.objects.filter(uuid=metadata.uuid).exists() is True
+        assert (
+            MetadataModelField.objects.filter(
+                uuid=environment_metadata_field.uuid
+            ).exists()
+            is True
+        )
+        assert MetadataField.objects.filter(uuid=metadata_field.uuid).delete()
 
 
 def test_export_features(project, environment, segment, admin_user):
