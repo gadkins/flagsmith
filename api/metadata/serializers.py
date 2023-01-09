@@ -5,7 +5,6 @@ from util.util import str_to_bool
 
 from .models import (
     FIELD_VALUE_MAX_LENGTH,
-    FieldType,
     Metadata,
     MetadataField,
     MetadataModelField,
@@ -22,27 +21,6 @@ class MetaDataModelFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetadataModelField
         fields = ("id", "field", "is_required", "content_type")
-
-
-class FieldDataField(serializers.Field):
-    """
-    Custom field to handle the different types of data supported by the metadata field
-    """
-
-    def to_internal_value(self, data):
-        data_type = type(data).__name__
-
-        if data_type not in [field.value for field in FieldType.__members__.values()]:
-            raise serializers.ValidationError("Invalid data type")
-
-        if data_type == str and len(data) > FIELD_VALUE_MAX_LENGTH:
-            raise serializers.ValidationError(
-                f"Value string is too long. Must be less than {FIELD_VALUE_MAX_LENGTH} character"
-            )
-        return data
-
-    def to_representation(self, value):
-        return value
 
 
 class ContentTypeSerializer(serializers.ModelSerializer):
