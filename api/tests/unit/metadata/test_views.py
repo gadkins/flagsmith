@@ -64,9 +64,11 @@ def test_can_update_metadata_field(admin_client, a_metadata_field, organisation)
     assert response.json()["type"] == new_field_type
 
 
-def test_can_list_metadata_fields(admin_client, a_metadata_field):
+def test_list_metadata_fields(admin_client, a_metadata_field):
     # Given
-    url = reverse("api-v1:metadata:metadata-fields-list")
+    base_url = reverse("api-v1:metadata:metadata-fields-list")
+
+    url = f"{base_url}?organisation={a_metadata_field.organisation.id}"
 
     # When
     response = admin_client.get(url)
@@ -75,6 +77,31 @@ def test_can_list_metadata_fields(admin_client, a_metadata_field):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
     assert response.json()["results"][0]["id"] == a_metadata_field.id
+
+
+def test_list_metadata_fields_without_organisation_returns_400(
+    admin_client, a_metadata_field
+):
+    # Given
+    url = reverse("api-v1:metadata:metadata-fields-list")
+
+    # When
+    response = admin_client.get(url)
+
+    # Then
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_retrieve_metadata_fields(admin_client, a_metadata_field):
+    # Given
+    url = reverse("api-v1:metadata:metadata-fields-detail", args=[a_metadata_field.id])
+
+    # When
+    response = admin_client.get(url)
+
+    # Then
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["id"] == a_metadata_field.id
 
 
 def test_create_metadata_field_returns_403_for_non_org_admin(

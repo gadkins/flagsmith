@@ -1,9 +1,13 @@
 import json
 
 from django.core.serializers.base import DeserializationError
+from django.core.serializers.json import Serializer as JsonSerializer
 from django.core.serializers.python import Deserializer as PythonDeserializer
 
 from metadata.models import Metadata
+
+# We do not override the Serializer but this module must define it
+Serializer = JsonSerializer
 
 
 def Deserializer(stream_or_string, **options):

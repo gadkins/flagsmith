@@ -130,7 +130,7 @@ def test_export_environments(project):
     # TODO: test whether the export is importable
 
 
-def test_export_metadata(environment, organisation):
+def test_export_metadata(environment, organisation, settings):
     # Given
     environment_type = ContentType.objects.get_for_model(environment)
 

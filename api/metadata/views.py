@@ -43,11 +43,12 @@ class MetadataFieldViewSet(viewsets.ModelViewSet):
         queryset = MetadataField.objects.filter(
             organisation__in=self.request.user.organisations.all()
         )
-        organisation_id = self.request.query_params.get("organisation")
-        if not organisation_id:
-            raise ValidationError("organisation parameter is required")
+        if self.action == "list":
+            organisation_id = self.request.query_params.get("organisation")
 
-        queryset = queryset.filter(organisation__id=organisation_id)
+            if organisation_id is None:
+                raise ValidationError("organisation parameter is required")
+            queryset = queryset.filter(organisation__id=organisation_id)
 
         return queryset
 
