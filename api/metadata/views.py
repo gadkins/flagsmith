@@ -4,6 +4,7 @@ from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from .models import MetadataField, MetadataModelField
@@ -28,7 +29,7 @@ METADATA_SUPPORTED_MODELS = ["environment"]
                 "organisation",
                 openapi.IN_QUERY,
                 "ID of the organisation to filter by.",
-                required=False,
+                required=True,
                 type=openapi.TYPE_INTEGER,
             )
         ]
@@ -43,8 +44,10 @@ class MetadataFieldViewSet(viewsets.ModelViewSet):
             organisation__in=self.request.user.organisations.all()
         )
         organisation_id = self.request.query_params.get("organisation")
-        if organisation_id:
-            queryset = queryset.filter(organisation__id=organisation_id)
+        if not organisation_id:
+            raise ValidationError("organisation parameter is required")
+
+        queryset = queryset.filter(organisation__id=organisation_id)
 
         return queryset
 

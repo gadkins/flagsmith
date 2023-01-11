@@ -5,7 +5,7 @@ from rest_framework import serializers
 from environments.models import Environment, EnvironmentAPIKey, Webhook
 from features.serializers import FeatureStateSerializerFull
 from metadata.serializers import MetadataSerializer, MetadataSerializerMixin
-from organisations.models import Subscription
+from organisations.models import Organisation, Subscription
 from organisations.subscriptions.serializers.mixins import (
     ReadOnlyIfNotValidPlanMixin,
 )
@@ -55,6 +55,9 @@ class EnvironmentSerializerWithMetadata(
 
     class Meta(EnvironmentSerializerLight.Meta):
         fields = EnvironmentSerializerLight.Meta.fields + ("metadata",)
+
+    def get_organisation_from_validated_data(self, validated_data) -> Organisation:
+        return validated_data.get("project").organisation
 
 
 class CreateUpdateEnvironmentSerializer(
