@@ -142,36 +142,42 @@ def test_export_metadata(environment, organisation):
         field=metadata_field, content_type=environment_type
     )
 
-    metadata = Metadata.objects.create(
+    environment_metadata = Metadata.objects.create(
         object_id=environment.id,
         content_type=environment_type,
         model_field=environment_metadata_field,
         field_value="some_data",
     )
     # When
-    data = export_metadata(organisation.id)
+    exported_environment = export_environments(environment.project.organisation_id)
+    exported_metadata = export_metadata(organisation.id)
 
-    # Then - we should be able to load the data
+    data = exported_environment + exported_metadata
+
+    # Now,to mimic a somewhat clean import, let's remove the metadata field
+    # Which in turn will remove the metadata object
+    metadata_field.delete()
+
+    # and the environment(use hard_delete instead of (soft)delete to avoid api_key collision)
+    environment.hard_delete()
+
+    # Next, let's load the data
     file_path = f"/tmp/{uuid.uuid4()}.json"
     with open(file_path, "a+") as f:
         f.write(json.dumps(data, cls=DjangoJSONEncoder))
         f.seek(0)
 
-        # Let's delete metadata field(which in turn will delete metadata model field and metadata field)
-        metadata_field.delete()
-
         # Next, let's load the data
         call_command("loaddata", f.name, format="json")
 
-        # All the fields should now exists
-        assert Metadata.objects.filter(uuid=metadata.uuid).exists() is True
-        assert (
-            MetadataModelField.objects.filter(
-                uuid=environment_metadata_field.uuid
-            ).exists()
-            is True
-        )
-        assert MetadataField.objects.filter(uuid=metadata_field.uuid).delete()
+    # Finally, all the loaded objects should now exists
+    assert MetadataField.objects.filter(uuid=metadata_field.uuid)
+
+    # and metadata correctly points to the loaded environment
+    metadata = Metadata.objects.get(uuid=environment_metadata.uuid)
+    loaded_environment = Environment.objects.get(api_key=environment.api_key)
+
+    assert metadata.content_object == loaded_environment
 
 
 def test_export_features(project, environment, segment, admin_user):
