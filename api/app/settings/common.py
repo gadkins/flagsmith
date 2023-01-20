@@ -153,6 +153,7 @@ INSTALLED_APPS = [
     "django_filters",
     "import_export",
     "task_processor",
+    "metadata",
     "softdelete",
 ]
 
@@ -822,3 +823,4 @@ AUTO_SEAT_UPGRADE_PLANS = env.list("AUTO_SEAT_UPGRADE_PLANS", default=[])
 
 
 SKIP_MIGRATION_TESTS = env.bool("SKIP_MIGRATION_TESTS", False)
+SERIALIZATION_MODULES = {"json": "import_export.json_serializers_with_metadata_support"}

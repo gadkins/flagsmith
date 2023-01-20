@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -18,6 +19,7 @@ from features.models import Feature, FeatureSegment, FeatureState
 from features.multivariate.models import MultivariateFeatureOption
 from features.value_types import STRING
 from features.workflows.core.models import ChangeRequest
+from metadata.models import Metadata, MetadataField, MetadataModelField
 from organisations.models import Organisation, OrganisationRole, Subscription
 from organisations.subscriptions.constants import CHARGEBEE, XERO
 from permissions.models import PermissionModel
@@ -289,6 +291,64 @@ def user_environment_permission(test_user, environment):
 @pytest.fixture()
 def user_project_permission(test_user, project):
     return UserProjectPermission.objects.create(user=test_user, project=project)
+
+
+@pytest.fixture()
+def a_metadata_field(organisation):
+    return MetadataField.objects.create(name="a", type="int", organisation=organisation)
+
+
+@pytest.fixture()
+def b_metadata_field(organisation):
+    return MetadataField.objects.create(name="b", type="str", organisation=organisation)
+
+
+@pytest.fixture()
+def required_a_environment_metadata_field(organisation, a_metadata_field, environment):
+    environment_type = ContentType.objects.get_for_model(environment)
+    return MetadataModelField.objects.create(
+        field=a_metadata_field,
+        content_type=environment_type,
+        is_required=True,
+    )
+
+
+@pytest.fixture()
+def optional_b_environment_metadata_field(organisation, b_metadata_field, environment):
+    environment_type = ContentType.objects.get_for_model(environment)
+
+    return MetadataModelField.objects.create(
+        field=b_metadata_field,
+        content_type=environment_type,
+        is_required=False,
+    )
+
+
+@pytest.fixture()
+def environment_metadata_a(environment, required_a_environment_metadata_field):
+    environment_type = ContentType.objects.get_for_model(environment)
+    return Metadata.objects.create(
+        object_id=environment.id,
+        content_type=environment_type,
+        model_field=required_a_environment_metadata_field,
+        field_value="10",
+    )
+
+
+@pytest.fixture()
+def environment_metadata_b(environment, optional_b_environment_metadata_field):
+    environment_type = ContentType.objects.get_for_model(environment)
+    return Metadata.objects.create(
+        object_id=environment.id,
+        content_type=environment_type,
+        model_field=optional_b_environment_metadata_field,
+        field_value="10",
+    )
+
+
+@pytest.fixture()
+def environment_content_type():
+    return ContentType.objects.get_for_model(Environment)
 
 
 @pytest.fixture(autouse=True)
